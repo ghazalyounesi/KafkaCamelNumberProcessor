@@ -1,11 +1,13 @@
 package com.example.kafka_camel_example.routes;
 
+import com.example.kafka_camel_example.aggregator.NumberAggregator;
 import com.example.kafka_camel_example.config.KafkaProperties;
 import com.example.kafka_camel_example.exception.InvalidNumberFormatException;
 import com.example.kafka_camel_example.service.AccumulatorService;
 import com.example.kafka_camel_example.util.NumberExtractor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -16,6 +18,7 @@ public class ConsumerRoute extends RouteBuilder {
 
     private final KafkaProperties kafkaProperties;
     private final AccumulatorService accumulatorService;
+    private final NumberAggregator numberAggregator = new NumberAggregator();
 
     @Value("${app.useKafka:true}")
     private boolean useKafka;
@@ -23,10 +26,6 @@ public class ConsumerRoute extends RouteBuilder {
     public ConsumerRoute(@NonNull KafkaProperties kafkaProperties, @NonNull AccumulatorService accumulatorService) {
         this.kafkaProperties = kafkaProperties;
         this.accumulatorService = accumulatorService;
-    }
-
-    public static ConsumerRoute create(@NonNull KafkaProperties kafkaProperties, @NonNull AccumulatorService accumulatorService) {
-        return new ConsumerRoute(kafkaProperties, accumulatorService);
     }
 
     @Override
@@ -42,14 +41,25 @@ public class ConsumerRoute extends RouteBuilder {
                         try {
                             Long number = NumberExtractor.extractNumber(body);
                             if (number != null) {
-                                accumulatorService.add(number);
-                                log.debug("Consumed number: {}", number);
+                                exchange.getMessage().setBody(number);
                             } else {
                                 log.warn("Received null or invalid number: {}", body);
+                                exchange.setProperty(Exchange.ROUTE_STOP, Boolean.TRUE);
                             }
                         } catch (InvalidNumberFormatException e) {
                             log.warn("Invalid number format exception: {}", e.getMessage());
-                            exchange.setException(e);
+                            exchange.setProperty(Exchange.ROUTE_STOP, Boolean.TRUE);
+                        }
+                    })
+                    .aggregate(constant(true), numberAggregator)
+                    .completionInterval(60000)
+                    .process(exchange -> {
+                        Long sum = exchange.getIn().getBody(Long.class);
+                        if (sum != null) {
+                            accumulatorService.add(sum);
+                            String msg = "Sum of last 60s numbers (aggregated) = " + sum;
+                            exchange.getMessage().setBody(msg);
+                            log.info(msg);
                         }
                     });
         } else {
@@ -60,26 +70,27 @@ public class ConsumerRoute extends RouteBuilder {
                         try {
                             Long number = NumberExtractor.extractNumber(body);
                             if (number != null) {
-                                accumulatorService.add(number);
-                                log.debug("Consumed number: {}", number);
+                                exchange.getMessage().setBody(number);
                             } else {
                                 log.warn("Received null or invalid number: {}", body);
+                                exchange.setProperty(Exchange.ROUTE_STOP, Boolean.TRUE);
                             }
                         } catch (InvalidNumberFormatException e) {
                             log.warn("Invalid number format exception: {}", e.getMessage());
-                            exchange.setException(e);
+                            exchange.setProperty(Exchange.ROUTE_STOP, Boolean.TRUE);
+                        }
+                    })
+                    .aggregate(constant(true), numberAggregator)
+                    .completionInterval(60000)
+                    .process(exchange -> {
+                        Long sum = exchange.getIn().getBody(Long.class);
+                        if (sum != null) {
+                            accumulatorService.add(sum);
+                            String msg = "Sum of last 60s numbers (aggregated) = " + sum;
+                            exchange.getMessage().setBody(msg);
+                            log.info(msg);
                         }
                     });
         }
-
-        from("timer://reporter?period=60000")
-                .routeId("sum-reporter")
-                .process(exchange -> {
-                    long sum = accumulatorService.getAndReset();
-                    String msg = "Sum of last 60s numbers = " + sum;
-                    exchange.getMessage().setBody(msg);
-                    log.info(msg);
-                });
     }
-
 }

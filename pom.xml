@@ -25,12 +25,11 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>2.4.3</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
 
 	<dependencyManagement>
 		<dependencies>
-			<!-- Import Apache Camel BOM for consistent versions -->
 			<dependency>
 				<groupId>org.apache.camel</groupId>
 				<artifactId>camel-bom</artifactId>
@@ -43,24 +42,20 @@
 
 	<dependencies>
 
-		<!-- Spring Boot Starter -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
 		</dependency>
 
-		<!-- Spring Boot Starter for testing -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 			<exclusions>
-				<!-- Exclude JUnit 4 -->
 				<exclusion>
 					<groupId>junit</groupId>
 					<artifactId>junit</artifactId>
 				</exclusion>
-				<!-- Exclude vintage engine to avoid conflicts -->
 				<exclusion>
 					<groupId>org.junit.vintage</groupId>
 					<artifactId>junit-vintage-engine</artifactId>
@@ -68,7 +63,6 @@
 			</exclusions>
 		</dependency>
 
-		<!-- JUnit 5 -->
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
@@ -82,34 +76,29 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- Apache Camel Spring Boot Starter -->
 		<dependency>
 			<groupId>org.apache.camel.springboot</groupId>
 			<artifactId>camel-spring-boot-starter</artifactId>
 			<version>${camel.version}</version>
 		</dependency>
 
-		<!-- Apache Camel Kafka Component -->
 		<dependency>
 			<groupId>org.apache.camel.springboot</groupId>
 			<artifactId>camel-kafka-starter</artifactId>
 			<version>${camel.version}</version>
 		</dependency>
 
-		<!-- Kafka Clients -->
 		<dependency>
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka-clients</artifactId>
 			<version>${kafka.clients.version}</version>
 		</dependency>
 
-		<!-- Lombok (اختیاری، اگر استفاده نکردید حذف کنید) -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
-		<!-- Camel Spring Boot Test (JUnit 5 support) -->
 		<dependency>
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-test-spring-junit5</artifactId>
@@ -117,12 +106,22 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- Spring Kafka Test -->
 		<dependency>
 			<groupId>org.springframework.kafka</groupId>
 			<artifactId>spring-kafka-test</artifactId>
-			<version>2.6.0</version> <!-- حتما هم نسخه kafka و spring-kafka-test یکی باشد -->
+			<version>2.6.0</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-api</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-core</artifactId>
+			<version>${camel.version}</version>
 		</dependency>
 
 	</dependencies>
@@ -130,7 +129,6 @@
 	<build>
 		<plugins>
 
-			<!-- Maven Compiler Plugin -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -142,7 +140,6 @@
 
 			</plugin>
 
-			<!-- Spring Boot Maven Plugin -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

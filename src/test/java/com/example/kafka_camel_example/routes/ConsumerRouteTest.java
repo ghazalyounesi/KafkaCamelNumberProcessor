@@ -1,7 +1,6 @@
 package com.example.kafka_camel_example.routes;
 
 import com.example.kafka_camel_example.service.AccumulatorService;
-import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
 import org.junit.jupiter.api.Test;
@@ -22,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.*;
 })
 @ActiveProfiles("test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-
 public class ConsumerRouteTest {
 
     @Autowired
@@ -31,22 +29,14 @@ public class ConsumerRouteTest {
     @Autowired
     private AccumulatorService accumulatorService;
 
-    @Autowired
-    private CamelContext camelContext;
-
     @Test
-    void contextLoads() {
-        assertNotNull(camelContext);
-    }
-
-    @Test
-    void testNumberConsumptionAndAccumulation() throws Exception {
+    void testAggregationAndAccumulation() throws Exception {
         accumulatorService.getAndReset();
 
         producerTemplate.sendBody("direct:testInput", 10);
         producerTemplate.sendBody("direct:testInput", 20);
 
-        long sum = waitForSum(30, 2000);
+        long sum = waitForSum(30, 70000);
         assertEquals(30, sum);
     }
 
@@ -57,12 +47,11 @@ public class ConsumerRouteTest {
             if (current == expected) {
                 return current;
             }
-            Thread.sleep(50);
+            Thread.sleep(100);
         }
         fail("Timed out waiting for sum " + expected);
         return -1;
     }
-
 
     @Test
     void testAccumulatorReset() throws Exception {
@@ -71,7 +60,7 @@ public class ConsumerRouteTest {
         producerTemplate.sendBody("direct:testInput", 5);
         producerTemplate.sendBody("direct:testInput", 15);
 
-        Thread.sleep(500);
+        Thread.sleep(61000);
 
         long sum1 = accumulatorService.getAndReset();
         assertEquals(20, sum1);
@@ -79,6 +68,4 @@ public class ConsumerRouteTest {
         long sum2 = accumulatorService.getAndReset();
         assertEquals(0, sum2);
     }
-
-
 }
